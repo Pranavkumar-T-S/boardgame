@@ -1,0 +1,39 @@
+# Build artifacts
+build/
+out/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+*.cmake
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Dependencies (except git submodules)
+!dependency/
+
+# MCP Client configuration (sensitive data)
+.env
+mcp-config.json
+github-token.txt
