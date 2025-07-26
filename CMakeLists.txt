@@ -5,6 +5,12 @@ project(BoardGame LANGUAGES C CXX VERSION "1.0.0")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Configure SDL3 to build as static library
+set(SDL_SHARED OFF CACHE BOOL "Build SDL3 shared library" FORCE)
+set(SDL_STATIC ON CACHE BOOL "Build SDL3 static library" FORCE)
+set(SDL_TEST OFF CACHE BOOL "Build SDL3 test programs" FORCE)
+set(SDL_EXAMPLES OFF CACHE BOOL "Build SDL3 example programs" FORCE)
+
 # Add SDL3 subdirectory
 add_subdirectory(dependency/SDL)
 
