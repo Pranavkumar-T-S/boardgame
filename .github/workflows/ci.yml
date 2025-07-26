@@ -15,7 +15,8 @@ jobs:
         build_type: [Release, Debug]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -23,8 +24,37 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build
-          sudo apt-get install -y libgl1-mesa-dev libglu1-mesa-dev
+          sudo apt-get install -y \
+            build-essential \
+            git \
+            make \
+            pkg-config \
+            cmake \
+            ninja-build \
+            gnome-desktop-testing \
+            libasound2-dev \
+            libpulse-dev \
+            libaudio-dev \
+            libjack-dev \
+            libsndio-dev \
+            libx11-dev \
+            libxext-dev \
+            libxrandr-dev \
+            libxcursor-dev \
+            libxfixes-dev \
+            libxi-dev \
+            libxss-dev \
+            libxtst-dev \
+            libxkbcommon-dev \
+            libdrm-dev \
+            libgbm-dev \
+            libgl1-mesa-dev \
+            libgles2-mesa-dev \
+            libegl1-mesa-dev \
+            libdbus-1-dev \
+            libibus-1.0-dev \
+            libudev-dev \
+            xvfb
 
       - name: Install dependencies (macOS)
         if: matrix.os == 'macos-latest'
@@ -39,15 +69,19 @@ jobs:
       - name: Configure CMake
         run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G Ninja
 
-      - name: Build
+      - name: Build project
         run: cmake --build build --config ${{ matrix.build_type }}
 
-      - name: Test (Linux/macOS)
+      - name: Test application (Linux/macOS)
         if: matrix.os != 'windows-latest'
         run: |
           cd build/bin
-          # Add basic smoke test
-          timeout 5s ./sample_window || true
+          # Run basic smoke test with virtual display for Linux
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            xvfb-run -a timeout 5s ./sample_window || true
+          else
+            timeout 5s ./sample_window || true
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
