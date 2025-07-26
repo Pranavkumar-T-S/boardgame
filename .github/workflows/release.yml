@@ -1,0 +1,108 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  build-and-upload:
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build
+          sudo apt-get install -y libgl1-mesa-dev libglu1-mesa-dev
+
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install cmake ninja
+
+      - name: Install dependencies (Windows)
+        if: matrix.os == 'windows-latest'
+        run: choco install cmake ninja
+
+      - name: Build Release
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
+          cmake --build build --config Release
+
+      - name: Package (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cd build/bin
+          tar -czf ../../boardgame-linux-x64.tar.gz sample_window
+
+      - name: Package (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd build/bin
+          tar -czf ../../boardgame-macos-x64.tar.gz sample_window
+
+      - name: Package (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          cd build/bin
+          7z a ../../boardgame-windows-x64.zip sample_window.exe
+
+      - name: Upload Release Asset (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./boardgame-linux-x64.tar.gz
+          asset_name: boardgame-linux-x64.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload Release Asset (macOS)
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./boardgame-macos-x64.tar.gz
+          asset_name: boardgame-macos-x64.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload Release Asset (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./boardgame-windows-x64.zip
+          asset_name: boardgame-windows-x64.zip
+          asset_content_type: application/zip
