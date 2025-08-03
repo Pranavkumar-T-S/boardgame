@@ -132,3 +132,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/bin
           destination_dir: demo
+    permissions:
+      contents: write
