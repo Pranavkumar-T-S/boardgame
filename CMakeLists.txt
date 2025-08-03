@@ -24,7 +24,32 @@ target_link_libraries(sample_window PRIVATE SDL3::SDL3-static)
 target_include_directories(sample_window PRIVATE dependency/SDL/include)
 
 # Platform-specific settings
-if(WIN32)
+if(EMSCRIPTEN)
+    # Emscripten/WebAssembly specific settings
+    set_target_properties(sample_window PROPERTIES
+        SUFFIX ".html"
+    )
+    
+    # Emscripten compiler flags
+    target_compile_options(sample_window PRIVATE
+        -sUSE_SDL=0  # Don't use Emscripten's SDL, we're building our own
+    )
+    
+    # Emscripten linker flags
+    target_link_options(sample_window PRIVATE
+        -sUSE_SDL=0
+        -sWASM=1
+        -sALLOW_MEMORY_GROWTH=1
+        -sINITIAL_MEMORY=16777216  # 16MB initial memory
+        -sSTACK_SIZE=1048576       # 1MB stack
+        --preload-file ${CMAKE_SOURCE_DIR}/assets@/assets  # Load assets (if any)
+        --shell-file ${CMAKE_SOURCE_DIR}/web/shell.html    # Custom HTML shell (optional)
+        -sEXPORTED_FUNCTIONS=_main
+        -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
+        --embed-file ${CMAKE_SOURCE_DIR}/README.md@/README.md  # Embed README for demo
+    )
+
+elseif(WIN32)
     # On Windows, set subsystem to avoid console window
     set_target_properties(sample_window PROPERTIES
         WIN32_EXECUTABLE TRUE

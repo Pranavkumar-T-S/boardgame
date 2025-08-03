@@ -88,3 +88,47 @@ jobs:
         with:
           name: build-${{ matrix.os }}-${{ matrix.build_type }}
           path: build/bin/
+
+  webassembly:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Emscripten from submodule
+        run: |
+          cd deps/emsdk
+          ./emsdk install latest
+          ./emsdk activate latest
+
+      - name: Verify Emscripten installation
+        run: |
+          cd deps/emsdk && source ./emsdk_env.sh
+          emcc --version
+          em++ --version
+
+      - name: Build WebAssembly
+        run: |
+          cd deps/emsdk && source ./emsdk_env.sh
+          cd ../..
+          mkdir -p build
+          cd build
+          emcmake cmake .. -DCMAKE_BUILD_TYPE=Release
+          emmake make -j$(nproc)
+
+      - name: Upload WebAssembly artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: webassembly-build
+          path: build/bin
+
+      - name: Upload WebAssembly to GitHub Pages (if main branch)
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/bin
+          destination_dir: demo

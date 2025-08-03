@@ -8,6 +8,7 @@ A simple SDL3-based application that demonstrates creating a window with animate
 - Displays a bouncing red rectangle with animation
 - Shows a static green rectangle in the center
 - Cross-platform support (Windows, macOS, Linux)
+- WebAssembly support for running in web browsers
 - Modern CMake build system with Makefile wrapper
 
 ## Prerequisites
@@ -36,6 +37,21 @@ make debug
 # Show all available targets
 make help
 ```
+
+### WebAssembly Build
+
+```bash
+# Build for WebAssembly (automatic setup)
+make web
+
+# Build and serve locally on http://localhost:8000
+make web-serve
+
+# Clean web build
+make web-clean
+```
+
+**Note:** The `make web` command automatically sets up Emscripten from the submodule - no manual setup required!
 
 ### Using CMake directly
 
@@ -73,16 +89,34 @@ boardgame/
 ├── CMakeLists.txt          # Main CMake configuration
 ├── Makefile               # Build automation
 ├── README.md              # This file
-├── build.sh               # Legacy build script (deprecated)
 ├── src/
 │   └── main.cpp           # Main application source
+├── web/
+│   └── shell.html         # Custom HTML shell for WebAssembly
+├── assets/                # Game assets directory
+├── scripts/
+│   ├── build-web.sh       # WebAssembly build script
+│   └── setup-emscripten.sh # Emscripten setup script
+├── deps/
+│   └── emsdk/             # Emscripten SDK (git submodule)
 └── dependency/
     └── SDL/               # SDL3 library (git submodule)
 ```
 
 ## Dependencies
 
-The project uses SDL3 as a git submodule located in `dependency/SDL`. The CMake configuration automatically builds SDL3 as part of the project.
+The project uses the following dependencies as git submodules:
+
+- **SDL3** (`dependency/SDL`): Graphics and input library
+- **Emscripten SDK** (`deps/emsdk`): WebAssembly compiler toolchain
+
+To initialize submodules:
+
+```bash
+git submodule update --init --recursive
+```
+
+The CMake configuration automatically builds SDL3 as part of the project.
 
 ## Development
 
@@ -119,6 +153,20 @@ gdb ./sample_window
 
 - Requires development packages for graphics libraries
 - Install build essentials and SDL dependencies
+
+For Ubuntu/Debian troubleshooting, see: [docs/Ubuntu-Troubleshooting.md](docs/Ubuntu-Troubleshooting.md)
+
+### WebAssembly
+
+- Uses Emscripten SDK (included as submodule)
+- **Automatic setup** - just run `make web`
+- Built files are served from `build-web/web/` directory
+- Compatible with all modern web browsers
+- Optional manual setup available via `source ./scripts/setup-emscripten.sh`
+
+## Live Demo
+
+A live WebAssembly demo is available at: [GitHub Pages Demo](https://pranavkumar-t-s.github.io/boardgame/demo/sample_window.html) (automatically deployed from main branch)
 
 ## License
 
